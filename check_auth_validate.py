@@ -1,7 +1,6 @@
 import bcrypt
 from middleware_errors import BadRequest, Unauthorized
 from aiohttp.web import View
-# from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 from schema import SCHEMA_MODEL
 from models import MODEL, Token

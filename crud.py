@@ -7,7 +7,7 @@ from sqlalchemy import Select
 
 async def get_item_by_id(model: MODEL_TYPE, item_id: int, session: AsyncSession) -> MODEL:
     item = await session.get(model, item_id)
-    if model is None:
+    if item is None:
         raise NotFound(f'{model.__name__} not found')
     return item
 
@@ -33,13 +33,16 @@ async def select_item(query: Select[Any], session: AsyncSession) -> MODEL:
         return "None"
     return item[0]
 
+
 async def update_item(item: MODEL, payload: dict, session: AsyncSession) -> MODEL:
     for key, value in payload.items():
         setattr(item, key, value)
     await add_item(item, session)
     return item
 
-
+async def delete_item(item: MODEL, session: AsyncSession):
+    await session.delete(item)
+    await session.commit()
 
 
 

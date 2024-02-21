@@ -1,7 +1,7 @@
 from aiohttp import web
 
 from models import init_orm
-from view_user_adv import UserView, LoginView
+from view_user_adv import UserView, LoginView, AdvView
 from middleware_errors import errors_middleware, session_middleware
 
 
@@ -13,13 +13,13 @@ def _get_app() -> web.Application:
     app.add_routes(
         [
             web.post("/login", LoginView),
-            web.get("/user", UserView),
+            web.get("/user/{user_id:\d+}", UserView),
             web.post("/user", UserView),
-            web.patch("/user", UserView),
-            web.delete("/user", UserView),
+            web.patch("/user/{user_id:\d+}", UserView),
+            web.delete("/user/{user_id:\d+}", UserView),
             # web.get("/adv", AdvView),
             # web.get("/adv/{adv_id:\d+}", AdvView),
-            # web.post("/adv", AdvView),
+            web.post("/adv", AdvView),
             # web.patch("/adv/{adv_id:\d+}", AdvView),
             # web.delete("/adv/{adv_id:\d+}", AdvView),
         ]
