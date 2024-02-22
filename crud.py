@@ -30,7 +30,7 @@ async def create_item(model: MODEL_TYPE, payload: dict, session: AsyncSession) -
 async def select_item(query: Select[Any], session: AsyncSession) -> MODEL:
     item = (await session.execute(query)).first()
     if not item:
-        return "None"
+        return None
     return item[0]
 
 
