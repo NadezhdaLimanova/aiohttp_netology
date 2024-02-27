@@ -15,14 +15,6 @@ class BaseView(web.View):
     def session(self) -> AsyncSession:
         return self.request.session
 
-    # @property
-    # def token(self) -> Token:
-    #     return self.request.token
-    #
-    # @property
-    # def user(self) -> User:
-    #     return self.request.token.user
-
     async def validated_json(self, schema: SCHEMA_MODEL):
         json_data = await self.request.json()
         return validate(schema, json_data)
