@@ -64,7 +64,7 @@ class Advertisement(Base):
     user: Mapped[User] = relationship(User, back_populates="advertisements")
 
     @property
-    def json(self):
+    def dict(self):
         return {
             "id": self.id,
             "author": self.author,

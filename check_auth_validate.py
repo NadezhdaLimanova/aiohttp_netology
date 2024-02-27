@@ -1,5 +1,5 @@
 import bcrypt
-from middleware_errors import BadRequest, Unauthorized
+from middleware_errors import BadRequest, Unauthorized, Forbidden
 from aiohttp.web import View
 from sqlalchemy import func, select
 from schema import SCHEMA_MODEL
@@ -41,5 +41,7 @@ def check_token(handler):
     return wrapper
 
 
-
+def check_owner(item: MODEL, user_id: int):
+    if item.user_id != user_id:
+        raise Forbidden("access denied")
 

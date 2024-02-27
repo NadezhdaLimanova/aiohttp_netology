@@ -2,7 +2,7 @@ from aiohttp import web
 from models import User, Token, Advertisement
 import json
 from sqlalchemy.ext.asyncio import AsyncSession
-from check_auth_validate import hash_password, check_password, validate, check_token
+from check_auth_validate import hash_password, check_password, validate, check_token, check_owner
 from schema import CreateUser, CreateAdv, PatchUser, PatchAdv, Login, SCHEMA_MODEL
 from crud import add_item, create_item, get_item_by_id, select_item, update_item, delete_item
 from middleware_errors import Unauthorized
@@ -15,13 +15,13 @@ class BaseView(web.View):
     def session(self) -> AsyncSession:
         return self.request.session
 
-    @property
-    def token(self) -> Token:
-        return self.request.token
-
-    @property
-    def user(self) -> User:
-        return self.request.token.user
+    # @property
+    # def token(self) -> Token:
+    #     return self.request.token
+    #
+    # @property
+    # def user(self) -> User:
+    #     return self.request.token.user
 
     async def validated_json(self, schema: SCHEMA_MODEL):
         json_data = await self.request.json()
@@ -38,7 +38,7 @@ class UserView(BaseView):
     @check_token
     async def get(self):
         user = await get_item_by_id(User, self.user_id, self.session)
-        return web.json_response(self.user.dict)
+        return web.json_response(user.dict)
 
 
     async def post(self):
@@ -84,17 +84,44 @@ class AdvView(BaseView):
         adv_id = self.request.match_info.get("adv_id")
         return int(adv_id) if adv_id else None
 
+    @property
+    async def user_id(self) -> int:
+        token = self.request.headers.get("Authorization")
+        user_id_query = select(Token.user_id).where(Token.token == token)
+        user_id = await select_item(user_id_query, self.session)
+        return user_id
+
+    @check_token
     async def get(self):
-        pass
+        user_id = await self.user_id
+        user = await get_item_by_id(User, user_id, self.session)
+        if self.adv_id is None:
+            return web.json_response([adv.dict for adv in user.advertisements])
+        adv = await get_item_by_id(Advertisement, self.adv_id, self.session)
+        check_owner(adv, user_id)
+        return web.json_response(adv.dict)
 
     @check_token
     async def post(self):
         json_data = await self.validated_json(CreateAdv)
+        user_id = await self.user_id
         adv = await create_item(Advertisement, dict(user_id=user_id, **json_data), self.session)
         return web.json_response({'id': adv.id, "name": adv.author})
 
+    @check_token
     async def patch(self):
-        pass
+        payload = await self.validated_json(PatchAdv)
+        user_id = await self.user_id
+        adv = await get_item_by_id(Advertisement, self.adv_id, self.session)
+        check_owner(adv, user_id)
+        adv = await update_item(adv, payload, self.session)
+        return web.json_response({'id': adv.id, "author": adv.author})
 
+    @check_token
     async def delete(self):
-        pass
+        user_id = await self.user_id
+        user = await get_item_by_id(User, user_id, self.session)
+        adv = await get_item_by_id(Advertisement, self.adv_id, self.session)
+        check_owner(adv, user_id)
+        await delete_item(adv, self.session)
+        return web.json_response({'status': 'success'})

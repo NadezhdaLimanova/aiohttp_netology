@@ -17,11 +17,11 @@ def _get_app() -> web.Application:
             web.post("/user", UserView),
             web.patch("/user/{user_id:\d+}", UserView),
             web.delete("/user/{user_id:\d+}", UserView),
-            # web.get("/adv", AdvView),
-            # web.get("/adv/{adv_id:\d+}", AdvView),
+            web.get("/adv", AdvView),
+            web.get("/adv/{adv_id:\d+}", AdvView),
             web.post("/adv", AdvView),
-            # web.patch("/adv/{adv_id:\d+}", AdvView),
-            # web.delete("/adv/{adv_id:\d+}", AdvView),
+            web.patch("/adv/{adv_id:\d+}", AdvView),
+            web.delete("/adv/{adv_id:\d+}", AdvView),
         ]
     )
 
